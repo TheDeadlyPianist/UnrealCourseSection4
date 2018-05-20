@@ -15,6 +15,8 @@ void ATank::Tick(float deltaT) {
 	if (delayTimer > 0) {
 		delayTimer -= GetWorld()->DeltaTimeSeconds;
 	}
+
+	updateReloadStatus();
 }
 
 void ATank::initialiseTankComponents(UTankAimingComponent* aimingComponent, UTankTurret* tankturret, UTankBarrel* tankBarrel) {
@@ -25,7 +27,7 @@ void ATank::initialiseTankComponents(UTankAimingComponent* aimingComponent, UTan
 }
 
 void ATank::fireTurret() {
-	if (delayTimer > 0) { return; }
+	if (delayTimer > 0 || ammoCount <= 0 || timeUntilReloaded > 0) { return; }
 	if (!barrelForProjectileSpawn) { UE_LOG(LogTemp, Error, TEXT("No barrel registered on blueprint"));return; }
 	if (!projectileBluePrint) { UE_LOG(LogTemp, Error, TEXT("No projectile registered on blueprint"));return; }
 
@@ -36,10 +38,30 @@ void ATank::fireTurret() {
 	
 	projectile->launchProjectile(firingVelocity);
 	delayTimer += firingDelay;
+	ammoCount--;
+	if (ammoCount <= 0) { timeUntilReloaded += reloadTime; }
 }
 
 void ATank::BeginPlay() {
 	Super::BeginPlay();
+}
+
+FVector ATank::getAimDirection() {
+	if (!ensure(barrelForProjectileSpawn)) { return FVector().ZeroVector; }
+
+	FVector forwardFacing = barrelForProjectileSpawn->GetForwardVector();
+	forwardFacing.Normalize();
+
+	return forwardFacing;
+}
+
+void ATank::updateReloadStatus() {
+	UE_LOG(LogTemp, Warning, TEXT("Reloaded in: %f"), timeUntilReloaded);
+	if (timeUntilReloaded > 0) {
+		timeUntilReloaded -= GetWorld()->DeltaTimeSeconds;
+	} else if(timeUntilReloaded <= 0 && ammoCount <= 0) {
+		ammoCount += maxAmmoCount;
+	}
 }
 
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {

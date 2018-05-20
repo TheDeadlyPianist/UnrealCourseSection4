@@ -29,6 +29,9 @@ private:
 
 	void goToPlayer();
 
+	UFUNCTION(BlueprintCallable)
+		bool lookingAtPlayer();
+
 	UPROPERTY(EditAnywhere)
-		float acceptanceRadius = 2000;
+		float acceptanceRadius = 8000;
 };

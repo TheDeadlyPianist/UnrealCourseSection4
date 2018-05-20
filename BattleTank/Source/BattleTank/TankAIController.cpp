@@ -12,7 +12,9 @@ void ATankAIController::Tick(float DeltaTime) {
 
 	goToPlayer();
 	aimAtPlayer();
-	getPossessedTank()->fireTurret();
+	if (lookingAtPlayer()) {
+		getPossessedTank()->fireTurret();
+	}
 }
 
 void ATankAIController::aimAtPlayer() {
@@ -30,6 +32,20 @@ ATank* ATankAIController::getPlayerTank() const {
 
 ATank* ATankAIController::getPossessedTank() {
 	return Cast<ATank>(GetPawn());
+}
+
+bool ATankAIController::lookingAtPlayer() {
+	if (!getPlayerTank()) { return false; }
+	if (!getPossessedTank()) { return false; }
+
+	FVector playerDirection = getPlayerTank()->GetActorLocation() - getPossessedTank()->GetActorLocation();
+	FVector barrelFacingDirection = getPossessedTank()->getAimDirection();
+	playerDirection.Normalize();
+	barrelFacingDirection.Normalize();
+
+	float differenceRatio = FVector::DotProduct(playerDirection, barrelFacingDirection);
+
+	if (differenceRatio > 0.9) { return true; } else { return false; }
 }
 
 void ATankAIController::goToPlayer() {

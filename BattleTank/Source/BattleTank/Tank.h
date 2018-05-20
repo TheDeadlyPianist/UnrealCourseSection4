@@ -43,10 +43,32 @@ public:
 		float firingDelay = 3;
 
 	UPROPERTY(EditAnywhere, Category = Firing)
-		float firingVelocity = 4000;
+		float firingVelocity = 10000;
 
 	UPROPERTY(BlueprintReadOnly, Category = Monitoring)
 		float delayTimer = 0;
+
+	UFUNCTION(BlueprintCallable)
+		float getTimerDelay() { return delayTimer; }
+
+	UFUNCTION(BlueprintCallable)
+		FVector getAimDirection();
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+		int32 ammoCount = 3;
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+		int32 maxAmmoCount = 3;
+
+	UFUNCTION(BlueprintCallable, Category = Firing)
+		int32 getAmmoCount() { return ammoCount; };
+
+	UPROPERTY(EditDefaultsOnly, Category = Firing)
+		float reloadTime = 5;
+
+	void updateReloadStatus();
+
+	float timeUntilReloaded = 0;
 
 private:
 	UPROPERTY(EditAnywhere, Category = Setup)
