@@ -34,4 +34,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		float acceptanceRadius = 8000;
+
+	void SetPawn(APawn* InPawn) override;
+
+	UFUNCTION()
+		void OnTankDeath();
 };

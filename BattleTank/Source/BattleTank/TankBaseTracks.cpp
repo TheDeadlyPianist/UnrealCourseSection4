@@ -2,46 +2,49 @@
 
 #include "TankBaseTracks.h"
 #include "Engine/World.h"
+#include "SprungWheel.h"
+#include "Components/SceneComponent.h"
+#include "SpawnPoint.h"
 
 UTankBaseTracks::UTankBaseTracks() {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UTankBaseTracks::BeginPlay() {
-	OnComponentHit.AddDynamic(this, &UTankBaseTracks::OnHit);
 }
 
 void UTankBaseTracks::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction) {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UTankBaseTracks::applySidewaysForce() {
-	float DeltaTime = GetWorld()->DeltaTimeSeconds;
-
-	FVector currentVector = GetComponentVelocity();
-	FVector sidewaysVector = GetRightVector();
-	float sidewaySlipRatio = FVector::DotProduct(currentVector, sidewaysVector);
-	FVector correctionAcc = -(sidewaySlipRatio / DeltaTime * sidewaysVector);
-
-	UStaticMeshComponent* tankRoot = Cast<UStaticMeshComponent>(GetOwner()->GetRootComponent());
-	FVector correctionForce = (tankRoot->GetMass() * correctionAcc) / 2;
-
-	tankRoot->AddForce(correctionForce);
-}
-
 void UTankBaseTracks::setThrottle(float relativeThrottle) {
-	currentThrottle = FMath::Clamp<float>(currentThrottle + relativeThrottle, -1, 1);
+	float currentThrottle = FMath::Clamp<float>(relativeThrottle, -1, 1);
+	driveTrack(currentThrottle);
 }
 
-void UTankBaseTracks::driveTrack() {
-	FVector forceApplied = GetForwardVector() * currentThrottle * maximumSpeedF;
-	FVector forceLocation = GetComponentLocation();
-	UPrimitiveComponent* tankRoot = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
-	tankRoot->AddForceAtLocation(forceApplied, forceLocation);
+void UTankBaseTracks::driveTrack(float currentThrottle) {
+	float forceApplied = currentThrottle * maximumSpeedF;
+	auto allWheels = GetWheels();
+	float forcePerWheel = forceApplied / allWheels.Num();
+
+	for (ASprungWheel* wheel : allWheels) {
+		wheel->addDrivingForce(forcePerWheel);
+	}
 }
 
-void UTankBaseTracks::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit) {
-	driveTrack();
-	applySidewaysForce();
-	currentThrottle = 0; 
+TArray<ASprungWheel*> UTankBaseTracks::GetWheels() const {
+	TArray<ASprungWheel*> resultArray;
+	TArray<USceneComponent*> children;
+	GetChildrenComponents(true, children);
+	for (USceneComponent* child : children) {
+		USpawnPoint* spawnPoint = Cast<USpawnPoint>(child);
+		if (!spawnPoint) continue;
+
+		AActor* spawnedActor = spawnPoint->getSpawnedActor();
+		ASprungWheel* sprungWheel = Cast<ASprungWheel>(spawnedActor);
+		if (!sprungWheel) continue;
+
+		resultArray.Add(sprungWheel);
+	}
+	return resultArray;
 }

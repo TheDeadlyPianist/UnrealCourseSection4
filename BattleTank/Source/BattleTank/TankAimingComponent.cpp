@@ -33,7 +33,7 @@ void UTankAimingComponent::rotateTurret(FVector target, float firingVelocity) {
 		fireLocation,
 		target,
 		firingVelocity,
-		false,
+		highArc,
 		0.f, 0.f,
 		ESuggestProjVelocityTraceOption::DoNotTrace
 	);

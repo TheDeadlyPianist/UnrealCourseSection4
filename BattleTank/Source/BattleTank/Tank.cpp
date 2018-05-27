@@ -3,6 +3,7 @@
 #include "Tank.h"
 #include "Projectile.h"
 #include "Components/AudioComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 ATank::ATank() {
@@ -56,12 +57,36 @@ FVector ATank::getAimDirection() {
 }
 
 void ATank::updateReloadStatus() {
-	UE_LOG(LogTemp, Warning, TEXT("Reloaded in: %f"), timeUntilReloaded);
 	if (timeUntilReloaded > 0) {
 		timeUntilReloaded -= GetWorld()->DeltaTimeSeconds;
 	} else if(timeUntilReloaded <= 0 && ammoCount <= 0) {
 		ammoCount += maxAmmoCount;
 	}
+}
+
+float ATank::getHealthPercentage() {
+	return (float)hitPoints/100.f;
+}
+
+float ATank::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController * EventInstigator, AActor * DamageCauser) {
+	float damageToApply = FMath::Clamp<float>(DamageAmount, 0, hitPoints);
+
+	if (DamageCauser && Cast<AProjectile>(DamageCauser)) {
+		float seperationDistance = FMath::Abs(FVector::Dist(DamageCauser->GetActorLocation(), GetActorLocation()));
+		float damageMultiplier = (1000 - FMath::Clamp<float>(seperationDistance, 0, 1000)) / 1000;
+
+		if (seperationDistance > 300) {
+			damageToApply *= damageMultiplier;
+		}
+	}
+
+	hitPoints -= FMath::CeilToFloat(damageToApply);
+
+	if (hitPoints <= 0) {
+		OnDeath.Broadcast();
+	}
+
+	return damageToApply;
 }
 
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {

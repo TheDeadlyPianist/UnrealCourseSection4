@@ -40,12 +40,24 @@ bool ATankAIController::lookingAtPlayer() {
 
 	FVector playerDirection = getPlayerTank()->GetActorLocation() - getPossessedTank()->GetActorLocation();
 	FVector barrelFacingDirection = getPossessedTank()->getAimDirection();
-	playerDirection.Normalize();
-	barrelFacingDirection.Normalize();
 
-	float differenceRatio = FVector::DotProduct(playerDirection, barrelFacingDirection);
+	float differenceRatio = FVector::DotProduct(playerDirection.GetSafeNormal2D(), barrelFacingDirection.GetSafeNormal2D());
 
-	if (differenceRatio > 0.9) { return true; } else { return false; }
+	if (differenceRatio > 0.98) { return true; } else { return false; }
+}
+
+void ATankAIController::SetPawn(APawn * InPawn) {
+	Super::SetPawn(InPawn);
+	if (InPawn) {
+		ATank* PossessedTank = Cast<ATank>(InPawn);
+		if (!ensure(PossessedTank)) { return; }
+		PossessedTank->OnDeath.AddUniqueDynamic(this, &ATankAIController::OnTankDeath);
+	}
+}
+
+void ATankAIController::OnTankDeath() {
+	if (!getPossessedTank()) { return; }
+	getPossessedTank()->DetachFromControllerPendingDestroy();
 }
 
 void ATankAIController::goToPlayer() {

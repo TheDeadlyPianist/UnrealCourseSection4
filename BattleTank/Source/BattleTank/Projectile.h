@@ -7,6 +7,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Projectile.generated.h"
 
+class URadialForceComponent;
 class UParticleSystemComponent;
 
 UCLASS()
@@ -27,12 +28,28 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void launchProjectile(float speed);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Collision)
+		UStaticMeshComponent* collisionMesh = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Particles)
+		UParticleSystemComponent* launchBlast = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Particles)
+		UParticleSystemComponent* collisionBlast = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = Firing)
+		float projectileDamage = 27;
+
 private:
 	UProjectileMovementComponent* projectileMovement = nullptr;
 
-	UPROPERTY(VisibleAnywhere, Category = Collision)
-		UStaticMeshComponent* collisionMesh = nullptr;
+	UPROPERTY(EditAnywhere, Category = Firing)
+		URadialForceComponent* radialForce = nullptr;
 
-	UPROPERTY(VisibleAnywhere, Category = Particles)
-		UParticleSystemComponent* launchBlast = nullptr;
+	UFUNCTION()
+		void OnHit(AActor* HitActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
+
+	void onTimerExpire() {
+		Destroy();
+	}
 };

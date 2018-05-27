@@ -23,6 +23,9 @@ public:
 	void SetTurretReference(UTankTurret* TurretToSet);
 
 	void rotateTurret(FVector target, float firingVelocity);
+
+	UPROPERTY(EditAnywhere)
+		bool highArc = false;
 	
 private:
 	UTankBarrel * Barrel = nullptr;

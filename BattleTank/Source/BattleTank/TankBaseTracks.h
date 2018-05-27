@@ -20,20 +20,15 @@ public:
 	void BeginPlay() override;
 	void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction) override;
 
-	void applySidewaysForce();
-
 	UFUNCTION(BlueprintCallable)
 		void setThrottle(float relativeThrottle);
 
-	void driveTrack();
+	void driveTrack(float currentThrottle);
 
 private:
-	float currentThrottle = 0;
-
 	// Forward force in N
 	UPROPERTY(EditAnywhere, Category = MovementSpeed)
 		float maximumSpeedF = 40000000;
 
-	UFUNCTION()
-		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+	TArray<class ASprungWheel*> GetWheels() const;
 };

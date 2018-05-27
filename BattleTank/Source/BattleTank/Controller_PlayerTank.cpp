@@ -8,8 +8,14 @@
 
 void AController_PlayerTank::BeginPlay() {
 	Super::BeginPlay();
+	SetTank(getControlledTank());
+}
 
-	ATank* possessedTank = getControlledTank();
+void AController_PlayerTank::SetTank(APawn* tankToUse) {
+	if (!tankToUse) { return; }
+
+	ATank* possessedTank = Cast<ATank>(tankToUse);
+	possessedTank->OnDeath.AddUniqueDynamic(this, &AController_PlayerTank::playerKilled);
 }
 
 void AController_PlayerTank::Tick(float deltaTime) {
@@ -70,6 +76,11 @@ bool AController_PlayerTank::getLookHitLocation(FHitResult &outHitLocation, FVec
 		outHitLocation,
 		curPos,
 		curPos + (lookDirection * tankRange),
-		ECC_Visibility
+		ECC_Camera
 	);
+}
+
+void AController_PlayerTank::playerKilled() {
+	UE_LOG(LogTemp, Warning, TEXT("asdgasgasdg"));
+	StartSpectatingOnly();
 }

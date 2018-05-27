@@ -10,6 +10,9 @@
 #include "Tank.generated.h"
 
 class AProjectile;
+class UParticleSystemComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS()
 class BATTLETANK_API ATank : public APawn
@@ -70,9 +73,23 @@ public:
 
 	float timeUntilReloaded = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
+		float hitPoints = 100.f;
+
+	UFUNCTION(BlueprintCallable)
+		float getHitPoints() { return hitPoints; }
+
+	UFUNCTION(BlueprintPure, Category = Health)
+		float getHealthPercentage();
+
+	UPROPERTY(BlueprintAssignable, Category = DeathCallable)
+		FOnDeath OnDeath;
+
 private:
 	UPROPERTY(EditAnywhere, Category = Setup)
 		TSubclassOf<AProjectile> projectileBluePrint;
 
 	UTankBarrel* barrelForProjectileSpawn;
+
+	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController * EventInstigator, AActor * DamageCauser) override;
 };

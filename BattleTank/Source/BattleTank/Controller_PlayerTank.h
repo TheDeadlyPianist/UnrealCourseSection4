@@ -21,6 +21,7 @@ public:
 		ATank* getControlledTank() const;
 
 	void BeginPlay() override;
+	void SetTank(APawn * tankToUse);
 	void Tick(float deltaTime) override;
 	void aimTankTurret();
 	bool getSightRayHitLocation(FHitResult &outHitLocation) const;
@@ -31,8 +32,13 @@ public:
 		float reticleYPerc = 0.33f;
 
 private:
+	ATank* tankReference;
 	bool getLookDirection(FVector2D reticleLocationOnScreen, FVector &lookDirection) const;
 	bool getLookHitLocation(FHitResult &outHitLocation, FVector lookDirection) const;
+
+	UFUNCTION()
+		void playerKilled();
+	
 	UPROPERTY(EditAnywhere)
 		float tankRange = 1000000;
 };
